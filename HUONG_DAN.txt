@@ -1,0 +1,45 @@
+﻿﻿MAYHEM COMBO v1.3 — gợi ý augment ARAM Mayhem (Windows)
+=========================================================
+
+CÀI ĐẶT (1 lần)
+1. Cài Python 3 (python.org, nhớ tick "Add python.exe to PATH").
+2. Liên Minh: Cài đặt → Video → Chế độ cửa sổ = "Không viền" (Borderless).
+3. Nháy đúp "Chay_MayhemCombo.bat".
+   Lúc mở app sẽ hiện thử nhãn vàng "★ PICK ME — nhãn hoạt động" 3 giây ở giữa phía trên màn hình.
+   Thấy nhãn này = nhãn PICK ME trong game sẽ hiện được.
+
+DÙNG
+- Bạn chết (lúc chọn augment) → app tự quét 3 thẻ. Hoặc bấm "⟳ Quét" / phím F9.
+- Trên từng thẻ trong game hiện nhãn:
+    ★ PICK ME +5.5  = nên chọn      +2.6 Tốt = điểm thẻ khác      ↻ reroll -2.3 = thẻ yếu, nên đổi
+  Nhãn click xuyên qua được, không cản bấm thẻ, tự tắt khi bảng chọn đóng.
+- Cửa sổ app (góc phải, tự co giãn theo nội dung):
+    [● Tên tướng · cấp ▾]                [⟳ Quét] [—] [✕]
+    ★ Augment nên chọn          +5.5 [Lấy]
+       thẻ trái · Rất mạnh · thắng 56% (+2.7) · combo ...
+    2 Augment khác              +2.6 [Lấy]
+    Đã có 1/4  [Mystic Punch ✕] [+]
+    ▸ Gợi ý build
+- Chọn thẻ trong game xong → bấm "Lấy" ở dòng đó (để app tính combo cho lượt sau).
+- Bấm vào 1 dòng augment để xem đủ lý do. Bấm "▸ Gợi ý build" để xem augment nên nhắm + combo 4 mạnh nhất.
+- Bấm tên tướng (▾) để chọn tướng bằng tay (khi chưa vào trận). Kéo thanh trên cùng để di chuyển cửa sổ.
+- "—" thu gọn còn 1 thanh có nút Quét. "✕" tắt app. F8 ẩn/hiện.
+- OCR đọc thiếu 1 thẻ → dòng "? thẻ ... chưa đọc được" hiện ra để gõ tên (có dấu/không dấu đều được).
+
+RAM: app ~40 MB; bộ đọc màn hình chỉ chạy lúc bạn chết / bấm Quét, tự tắt sau 30 giây.
+
+TUỲ CHỈNH — %APPDATA%\MayhemCombo\config.json (sửa xong mở lại app)
+  "badge_offset": 0.21     nhãn PICK ME cao/thấp (số lớn hơn → nhãn lên cao hơn)
+  "badge_selftest": true   false = tắt nhãn thử lúc mở app
+  "width": 300             độ rộng cửa sổ
+  "badges": true           false = tắt nhãn trên thẻ
+  "ocr": true              false = tắt tự đọc màn hình
+  "hotkey": "F8", "ocr_hotkey": "F9", "alpha": 0.95, "aug_lang": "vi" ("en" = tên tiếng Anh)
+
+LỖI: chạy Chay_debug.bat; log ở %APPDATA%\MayhemCombo\log.txt (có dòng "PICK ME: ..." ghi vị trí nhãn).
+
+AN TOÀN: app chỉ đọc API chính thức của game trên máy (127.0.0.1:2999), chụp vùng giữa màn hình lúc
+chọn augment và hiện cửa sổ riêng; không đụng vào game. Tool cá nhân, không được Riot duyệt —
+chỉ dùng riêng, đừng phát hành.
+
+Dữ liệu: arammeta (MIT), CommunityDragon, Riot Data Dragon. Not endorsed by Riot Games.
