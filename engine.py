@@ -22,7 +22,7 @@ import unicodedata
 import urllib.request
 from dataclasses import dataclass, field
 
-VERSION = "1.3.0"
+VERSION = "1.8.0"
 APP_DIR = os.path.dirname(os.path.abspath(__file__))
 
 ARAMMETA_BASES = [
@@ -366,6 +366,99 @@ _PAIR_RULES = [
     ([2118], [1004], -8.0, "Đơn Giản Hóa khoá chiêu cuối"),
 ]
 
+# --------------------------------------------------------------------------- ban 26.21 (16.21)
+# Riot them 35 augment Mayhem + go 13 augment (ghi chu chinh thuc ban 26.21). arammeta chua co so lieu
+# cho augment moi -> app tu nhan dien qua CommunityDragon (theo ten tieng Anh, lay id/ten VN that luc chay),
+# diem uoc tinh theo co che (nhan duoi day) cho toi khi co so lieu that.
+NEW_AUGS_PATCH = "26.21"
+# ten chuan hoa -> (id du phong, do hiem, nhan co che, ten VN du phong, ten tieng Anh)
+NEW_AUGS = {
+    # ---- Silver
+    "bluebarrier": (3051, "kSilver", "MANA:1 TANK:.6 SPELL:.5", "Kết Giới Lam", "Blue Barrier"),
+    "flowofspirit": (3085, "kSilver", "AS:1 ABIL:1 SPELL:.3", "Dòng Chảy Linh Hồn", "Flow of Spirit"),
+    "fruitify": (3121, "kSilver", "HEAL:.6 TAKEDOWN:.6", "Hóa Trái Cây", "Fruitify"),
+    "giftofthedrowned": (3063, "kSilver", "HP:1 AD:.8 TANK:.3", "Quà Của Kẻ Chết Đuối", "Gift of the Drowned"),
+    "handsoffthetalent": (3052, "kSilver", "RANGE:1 ONHIT:.6 AS:.4", "Đừng Đụng Vào Tài Năng",
+                          "Hands off the Talent"),
+    "lichbrain": (3094, "kSilver", "AP:.8 HP:1 TANK:.4", "Trí Tuệ Tai Ương", "Lich Brain"),
+    "lonelywarrior": (3134, "kSilver", "TANK:.8 AS:.6 MELEE:.5", "Chiến Binh Độc Hành", "Lonely Warrior"),
+    "nomananoproblem": (3059, "kSilver", "AP:1 MANA:1", "Hết Năng Lượng, Không Vấn Đề", "No Mana, No Problem"),
+    "soundbarrier": (3025, "kSilver", "HEAL:.8 MS:.6", "Bức Tường Âm Thanh", "Sound Barrier"),
+    "ultimaterecursion": (3055, "kSilver", "ULT:1", "Hồi Quy Chiêu Cuối", "Ultimate Recursion"),
+    # ---- Gold
+    "arcaneaxiom": (3118, "kGold", "ULT:1 TAKEDOWN:.6", "Chân Lý Huyền Thuật", "Arcane Axiom"),
+    "armoredimpact": (3049, "kGold", "TANK:1 SPELL:.4 AD:.3", "Va Chạm Thiết Giáp", "Armored Impact"),
+    "bees": (3086, "kGold", "AUGDMG:1 SPELL:.4 ONHIT:.4 CC:.3", "ONG KÌA!!!", "BEES!!!"),
+    "brassblast": (3071, "kGold", "AUGDMG:.8 CC:.6", "Cú Thổi Chấn Động", "Brass Blast"),
+    "crimsoncobalt": (3088, "kGold", "ABIL:1 SPELL:.5 AS:.4 AUGDMG:.4", "HUYẾT LAM", "CRIMSON COBALT"),
+    "doubletime": (3036, "kGold", "SPELL:.8 MANA:.6 AUGDMG:.6 STACK:.4", "Gấp Đôi Sát Thương", "Double Time"),
+    "enchantingbutterflies": (3163, "kGold", "HEAL:1 AUGDMG:.6", "Bướm Phù Phép", "Enchanting Butterflies"),
+    "getjinxed": (3004, "kGold", "AUGDMG:1 DASH:.6", "Get Jinxed", "Get Jinxed"),
+    "heavyisthecrown": (3132, "kGold", "AD:.5 AP:.5 AS:.5 TAKEDOWN:.8 STACK:.4", "Heavy Is The Crown",
+                        "Heavy Is The Crown"),
+    "jeweledbracelet": (3123, "kGold", "CRIT:1 ABIL:1 SPELL:.4", "Vòng Bảo Thạch", "Jeweled Bracelet"),
+    "recoil": (3075, "kGold", "ABIL:1 DASH:.4", "Giật Lùi", "Recoil"),
+    "salvation": (3039, "kGold", "TANK:.6 HEAL:.6 CC:.4 AUGDMG:.4", "Cứu Rỗi", "Salvation"),
+    "sapmagic": (3129, "kGold", "VAMP:.6 SPELL:.4 AD:.3", "Ma Pháp Nhựa Cây", "Sap Magic"),
+    "stillhere": (3131, "kGold", "AS:.8 VAMP:.8 MELEE:.3", "Vẫn Ở Đây", "Still Here"),
+    "takeemdowndowndown": (3116, "kGold", "AUGDMG:.8 VAMP:.4 AS:.3 SPELL:.3", "Take'em Down Down Down",
+                           "Take'em Down Down Down"),
+    "theboomandthebass": (3078, "kGold", "SPELL:.6 AS:.4 MS:.5 AUGDMG:.4", "Nốt Trầm Bùng Nổ",
+                          "The Boom and the Bass"),
+    "ticklemonster": (3058, "kGold", "AS:1 ONHIT:1", "Quái Cù Lét", "Tickle Monster"),
+    "upgradestormsurge": (3150, "kGold", "AP:.8 GOLD:.6 AUGDMG:.4 ITEM:.5", "Upgrade Stormsurge",
+                          "Upgrade Stormsurge"),
+    "weaponofdestiny": (3081, "kGold", "ITEM:.6 TAKEDOWN:.8 STACK:.6", "Weapon of Destiny", "Weapon of Destiny"),
+    # ---- Prismatic
+    "bigshot": (3018, "kPrismatic", "CRIT:1 AD:.6", "Tai To Mặt Lớn", "Big Shot"),
+    "bouncingbees": (3048, "kPrismatic", "SPELL:.5 ONHIT:.6 AD:.5 AS:.3", "Bầy Ong Nảy Bật", "Bouncing Bees"),
+    "grouphug": (3149, "kPrismatic", "HEAL:1.2", "Ôm Tập Thể", "Group Hug"),
+    "moshmonster": (3053, "kPrismatic", "HP:1 TANK:.8 CC:.5 TAKEDOWN:.5 ULT:.5", "Quái Quẩy", "Mosh Monster"),
+    "thirdtimestheharm": (3016, "kPrismatic", "AS:1 ONHIT:.6 STACK:.6", "Quá Tam Ba Họa", "Third Times the Harm"),
+    "totentanz": (3079, "kPrismatic", "DASH:.8 TAKEDOWN:.6 MELEE:.5", "Khúc Vũ Tử Thần", "Totentanz"),
+}
+# 13 augment bi go khoi Mayhem tu ban 26.21 (ten tieng Anh chuan hoa).
+REMOVED_AUGS = {"combustinginterest", "critncast", "criticalmissile", "dimensionshift", "dropbear", "dropkick",
+                "fanthehammer", "hideonbush", "highroller", "ourhealing", "porostampede", "spiritualpurification",
+                "ultbot"}
+REMOVED_SINCE = (16, 21)
+for _k, (_id, _r, _t, _vn, _en) in NEW_AUGS.items():
+    AUG_TAGS[_id] = _parse_tags(_t)
+_N = {k: v[0] for k, v in NEW_AUGS.items()}
+_CRIT_CHANCE_NOW = [1047, 2009, 1415, 1077, 1118, 1080, 1336, 1328, 1048]
+_PAIR_RULES += [
+    ([_N["ticklemonster"]], [1058], 2.0, "SMVL đổi thành tốc đánh → đánh nhanh → giảm hồi chiêu nhanh hơn"),
+    ([_N["ticklemonster"]], _ONHIT_FX + [2010, 1225], 1.5, "nhiều tốc đánh → kích hoạt on-hit liên tục"),
+    ([_N["ticklemonster"]], [1205], -4.0, "cả hai cùng đổi SMVL sang chỉ số khác"),
+    ([_N["bigshot"]], _CRIT_CHANCE_NOW, 1.5, "thêm tỉ lệ chí mạng → sát thương chí mạng cực lớn"),
+    ([_N["bigshot"]], [1058, 1225], -1.5, "tốc đánh bị đổi thành sát thương chí mạng → ít đòn đánh hơn"),
+    ([_N["bigshot"]], [_N["ticklemonster"]], -2.0, "một cái đổi SMVL thành tốc đánh, một cái đổi tốc đánh đi"),
+    ([_N["jeweledbracelet"]], [1048], 2.0, "cả hai cho kỹ năng chí mạng"),
+    ([_N["jeweledbracelet"]], _CRIT_CHANCE_NOW + [_N["bigshot"]], 1.8, "kỹ năng chí mạng + thêm chí mạng"),
+    ([_N["lichbrain"]], _HP_AUGS, 1.5, "thêm máu → thêm sức mạnh phép"),
+    ([_N["giftofthedrowned"]], _HP_AUGS, 1.2, "thêm máu → thêm xuyên giáp"),
+    ([_N["lichbrain"]], [_N["giftofthedrowned"]], -1.0, "hai augment dùng máu theo hai hướng khác nhau"),
+    ([_N["nomananoproblem"]], [1056, 1311], 1.5, "năng lượng tối đa → sức mạnh phép"),
+    ([_N["nomananoproblem"]], [1097, 1390, 1030], 1.0, "cùng hướng sức mạnh phép"),
+    ([_N["nomananoproblem"]], [1206], -3.0, "SMPT bị đổi hết thành SMVL"),
+    ([_N["bluebarrier"]], [1056, 1311], 1.5, "nhiều năng lượng → khiên to hơn"),
+    ([_N["bluebarrier"]], [1314], 1.5, "có khiên → thêm sức mạnh thích ứng"),
+    ([_N["soundbarrier"]], _SHIELD_SRC + [_N["bluebarrier"]], 1.0, "có khiên → thêm tốc chạy"),
+    ([_N["grouphug"]], [_N["enchantingbutterflies"], _N["soundbarrier"]], 1.5, "hồi máu/khiên cho nhiều đồng đội"),
+    ([_N["ultimaterecursion"], _N["arcaneaxiom"]], _ULT_AUGS + [_N["moshmonster"]], 1.5,
+     "chiêu cuối hồi nhanh hơn"),
+    ([_N["ultimaterecursion"]], [_N["arcaneaxiom"]], 1.5, "chồng giảm hồi chiêu cuối"),
+    ([1004], [_N["ultimaterecursion"], _N["arcaneaxiom"], _N["moshmonster"]], -8.0,
+     "Đơn Giản Hóa khoá chiêu cuối → augment chiêu cuối vô dụng"),
+    ([_N["moshmonster"]], _HP_AUGS, 1.0, "chồng máu tối đa"),
+    ([_N["heavyisthecrown"]], [1026, 1081], -2.0, "giảm tốc chạy ngược với augment ăn theo tốc chạy"),
+    ([_N["heavyisthecrown"]], [1105, 1305, 1098], -1.0, "giảm tốc chạy ngược với augment tốc chạy"),
+    ([_N["stillhere"]], [1325], 1.5, "máu thấp → thêm tốc đánh và hút máu"),
+    ([_N["armoredimpact"]], [1001, 1324, 1149, 2076], 1.0, "thêm giáp → đòn đánh sau kỹ năng đau hơn"),
+    ([_N["upgradestormsurge"]], [1097, 1390, 1030], 1.0, "SMPT cao → Bão Tố nổ mạnh hơn"),
+]
+del _N
+
 PAIR_RULES: dict = {}
 for _A, _B, _v, _txt in _PAIR_RULES:
     for _a in _A:
@@ -377,7 +470,23 @@ for _A, _B, _v, _txt in _PAIR_RULES:
                 if cur is None or abs(_v) > abs(cur[0]):
                     PAIR_RULES[key] = (_v, _txt)
 
+
+def _alias_new_aug(fid: int, aid: int):
+    """Id that cua augment moi khac id du phong -> chep nhan, combo, do can, nhiem vu sang id that."""
+    if fid in AUG_TAGS:
+        AUG_TAGS.setdefault(aid, AUG_TAGS[fid])
+    for (x, y), v in list(PAIR_RULES.items()):
+        if x == fid:
+            PAIR_RULES.setdefault((aid, y), v)
+        if y == fid:
+            PAIR_RULES.setdefault((x, aid), v)
+    if fid in AUG_MUST_ITEMS:
+        AUG_MUST_ITEMS.setdefault(aid, AUG_MUST_ITEMS[fid])
+    if fid in QUEST_IDS:
+        QUEST_IDS.add(aid)
+
 QUEST_IDS = {1152, 1361, 1156, 2141, 1154, 2103, 2100, 2116, 2055, 2046, 2102}
+QUEST_IDS.update({NEW_AUGS[k][0] for k in ("bouncingbees", "weaponofdestiny", "heavyisthecrown")})  # lay som moi loi
 PURE_ECON_IDS = {1384, 1404, 1403, 1402, 2095, 2089}
 RANDOM_IDS = {1237, 1238, 1243, 12317}
 
@@ -389,9 +498,62 @@ RANDOM_IDS = {1237, 1238, 1243, 12317}
 
 BUNDLED_CORE = os.path.join(APP_DIR, "data", "core.json")
 BUNDLED_CHAMPS_DIR = os.path.join(APP_DIR, "data", "champs")
+BUNDLED_CLASS_CORES = os.path.join(APP_DIR, "data", "class_cores.json")  # build chung theo lop tuong (du phong)
 CDRAGON_EN_AUGS = ("https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/"
                    "global/default/v1/cherry-augments.json")
 CHAMP_CACHE_MAX = 4
+
+
+# --------------------------------------------------------------------------- items
+DDRAGON_ITEMS = "https://ddragon.leagueoflegends.com/cdn/{ver}/data/vi_VN/item.json"
+BOOTS_TAGS = {3006: ["AS"], 3009: ["MS"], 3020: ["AP", "MPEN"], 3047: ["ARMOR", "TANK"],
+              3111: ["MR", "TANK", "TEN"], 3158: ["AH"], 3008: ["VAMP"], 3013: ["HEAL"], 3010: ["HEAL"]}
+SPELLBLADE_IDS = {3078, 3100, 6662, 3508}
+HYDRA_IDS = {3074, 6698, 3748}
+BURN_IDS = {3068, 6664, 6653, 2503}
+STARTER_IDS = {2051, 3112, 3177, 3184}  # do khoi dau ARAM (Guardian's ...) -> khong goi y trong build
+# Nhom do chi duoc mua 1 mon (uniq).
+UNIQUE_GROUPS = [SPELLBLADE_IDS, HYDRA_IDS, {3053, 3156, 6673}, {3036, 6694, 3033},
+                 {3003, 3004, 3119, 3040, 3042, 3121}, {3139, 6035}, {3068, 6664}]
+_STAT_TAGS = [("Attack Damage", "AD"), ("Attack Speed", "AS"), ("Critical Strike", "CRIT"), ("Ability Power", "AP"),
+              ("Magic Resist", "MR"), ("Ability Haste", "AH"), ("Heal and Shield Power", "HEAL"), ("Life Steal", "VAMP"),
+              ("Omnivamp", "VAMP"), ("Move Speed", "MS"), ("Lethality", "LETH"), ("Armor Penetration", "LETH"),
+              ("Magic Penetration", "MPEN"), ("Tenacity", "TEN")]
+
+
+def item_tags_from_lut(iid: int, e: dict) -> list:
+    tags = set()
+    stats = (e.get("de") or "").split("\n\n")[0]
+    for line in stats.split("\n"):
+        m = re.match(r"^[\d.]+%?\s+(.+)$", line.strip())
+        if not m:
+            continue
+        stat = m.group(1)
+        for key, tag in _STAT_TAGS:
+            if stat.startswith(key):
+                tags.add(tag)
+        if stat == "Health":
+            tags.add("HP")
+        if stat == "Armor":
+            tags.add("ARMOR")
+        if stat == "Mana":
+            tags.add("MANA")
+    st = e.get("s") or ""
+    if "onhit" in st or "On-Hit" in (e.get("de") or ""):
+        tags.add("ONHIT")
+    if st == "ap_burn" or iid in BURN_IDS:
+        tags.add("BURN")
+    if st == "tank":
+        tags.add("TANK")
+    if st == "support":
+        tags.add("HEAL")
+    if st == "heartsteel":
+        tags.update(["HP", "TANK"])
+    if iid in SPELLBLADE_IDS:
+        tags.add("SPELLBLADE")
+    if iid in HYDRA_IDS:
+        tags.add("HYDRA")
+    return sorted(tags)
 
 
 def compact_core(tier: dict) -> dict:
@@ -416,12 +578,23 @@ def compact_core(tier: dict) -> dict:
             "alias": c.get("alias"), "en": c.get("name_en"), "tags": c.get("tags") or [],
             "wr": c.get("rawWr") or c.get("wr"), "g": c.get("g") or 0, "comp": c.get("comp") or {},
         }
+    items = {}
+    for k, e in (tier.get("itemLut") or {}).items():
+        if str(k).isdigit():
+            items[str(k)] = {"en": e.get("e") or "", "t": item_tags_from_lut(int(k), e), "r": e.get("r") or ""}
+    for k, e in (tier.get("itemFamilies") or {}).items():
+        iid = str(e.get("id") or "")
+        if iid.isdigit() and iid not in items:
+            items[iid] = {"en": e.get("name_en") or "", "t": ["MANA", "AH"], "r": ""}
+    for iid, tg in BOOTS_TAGS.items():
+        items.setdefault(str(iid), {"en": "", "t": tg, "r": "", "boots": 1})
+        items[str(iid)]["boots"] = 1
     return {
         "patch": tier.get("patch_prefix") or "",
         "ddv": tier.get("ddv") or "",
         "detailVersion": tier.get("detailVersion") or "",
         "built": time.strftime("%Y-%m-%d %H:%M"),
-        "augs": augs, "champs": champs,
+        "augs": augs, "champs": champs, "items": items,
     }
 
 
@@ -436,7 +609,41 @@ def compact_champ(cf: dict) -> dict:
                 if sl and str(row.get("id")) not in s:
                     s[str(row["id"])] = [[(x or {}).get("g", 0), (x or {}).get("rawWr", (x or {}).get("wr"))]
                                          for x in sl]
-    return {"a": a, "s": s}
+    # Do: ti le thang theo tuong + cum do loi + giay (+ ten tieng Anh cua cac mon xuat hien)
+    nm = {}
+    it = {}
+
+    def note(row):
+        sid = str(row.get("slug") or row.get("id") or "")
+        if sid.isdigit():
+            if row.get("name_en"):
+                nm[sid] = row["name_en"]
+            return sid
+        return None
+
+    for part in ("top", "bot", "popularBad"):
+        for row in (cf.get("singleItems") or {}).get(part) or []:
+            sid = note(row)
+            if sid and sid not in it:
+                it[sid] = [row.get("g", 0), row.get("lift", 0.0)]
+    bt = []
+    for part in ("top", "bot"):
+        for row in (cf.get("boots") or {}).get(part) or []:
+            sid = note(row)
+            if sid and all(b[0] != sid for b in bt):
+                bt.append([sid, row.get("g", 0), row.get("lift", 0.0)])
+    cl = []
+    for gp in (cf.get("itemClusters") or {}).get("groups") or []:
+        core = [str(x.get("id")) for x in gp.get("core") or [] if x.get("id")]
+        opts = [[str(o.get("id")), o.get("g", 0), o.get("lift", 0.0)] for o in gp.get("options") or [] if o.get("id")]
+        qc = gp.get("quickCore") or {}
+        cl.append({"core": core, "opts": opts, "tail": [str(x.get("id")) for x in gp.get("tail") or [] if x.get("id")],
+                   "comp": [str(x.get("id")) for x in gp.get("completion") or [] if x.get("id")],
+                   "qc": [str(x.get("id")) for x in qc.get("items") or [] if x.get("id")],
+                   "qg": qc.get("g", 0), "qwr": qc.get("wr"),
+                   "boot": str(gp.get("completionBoot") or (gp.get("routeBoot") or {}).get("id") or ""),
+                   "g": gp.get("g", 0), "lift": gp.get("lift", 0.0), "name": gp.get("name_en", "")})
+    return {"a": a, "s": s, "it": it, "bt": bt, "cl": cl, "nm": nm}
 
 
 def _read_json(path: str):
@@ -465,33 +672,43 @@ def fetch_updates(ddv_hint: str = "", log=None) -> dict | None:
         out["core"] = compact_core(tier)
     del tier
     names: dict = {}
-    vn = cached_json("vi_vn-cherry-augments.json", [CDRAGON_VN_AUGS], 24 * 3600, log)
+    ver = (out.get("core") or {}).get("ddv") or ddv_hint
+    # ten augment theo ban game: doi ban -> tai lai ngay (augment moi); cung ban -> lam moi moi 6 gio
+    tag = re.sub(r"[^0-9.]", "", ver or "") or "x"
+    vn = cached_json(f"vi_vn-cherry-augments-{tag}.json", [CDRAGON_VN_AUGS], 6 * 3600, log)
     if isinstance(vn, list):
         names["vn_aug"] = {str(r.get("id")): (r.get("nameTRA") or "").strip() for r in vn
                            if isinstance(r, dict) and r.get("nameTRA")}
-    en = cached_json("en-cherry-augments.json", [CDRAGON_EN_AUGS], 24 * 3600, log)
+    en = cached_json(f"en-cherry-augments-{tag}.json", [CDRAGON_EN_AUGS], 6 * 3600, log)
     if isinstance(en, list):
         names["en_aug"] = {str(r.get("id")): (r.get("nameTRA") or "").strip() for r in en
                            if isinstance(r, dict) and r.get("nameTRA")}
+        names["cd_rar"] = {str(r.get("id")): r.get("rarity") for r in en
+                           if isinstance(r, dict) and r.get("rarity") in ("kSilver", "kGold", "kPrismatic")}
     del vn, en
-    ver = (out.get("core") or {}).get("ddv") or ddv_hint
     if not ver:
         vers = cached_json("ddragon-versions.json", [DDRAGON_VERSIONS], 24 * 3600, log)
         ver = vers[0] if isinstance(vers, list) and vers else ""
     if ver:
         dd = cached_json(f"ddragon-vi_VN-{ver}.json", [DDRAGON_CHAMPS.format(ver=ver)], 7 * 24 * 3600, log)
         if isinstance(dd, dict) and dd.get("data"):
-            vc, rg, al = {}, {}, {}
+            vc, rg, al, tg = {}, {}, {}, {}
             for alias, c in dd["data"].items():
                 key = str(c.get("key") or "")
                 if not key.isdigit():
                     continue
                 vc[key] = c.get("name") or alias
+                tg[key] = c.get("tags") or []
                 r = (c.get("stats") or {}).get("attackrange")
                 if r:
                     rg[key] = float(r)
                 al[alias_key(alias)] = int(key)
-            names.update(vn_champ=vc, champ_range=rg, dd_alias=al)
+            names.update(vn_champ=vc, champ_range=rg, dd_alias=al, champ_tags=tg)
+        di = cached_json(f"ddragon-items-vi_VN-{ver}.json", [DDRAGON_ITEMS.format(ver=ver)], 7 * 24 * 3600, log)
+        if isinstance(di, dict) and di.get("data"):
+            names["vn_item"] = {k: (v.get("name") or "").strip() for k, v in di["data"].items()
+                                if k.isdigit() and v.get("name")}
+        del di
     if names:
         out["names"] = names
     if not out:
@@ -509,7 +726,7 @@ def fetch_updates(ddv_hint: str = "", log=None) -> dict | None:
 def fetch_champ(cid: int, detail_version: str, log=None) -> dict | None:
     """Tai so lieu 1 tuong (luong nen). Tra ve ban gon {a, s}."""
     name = f"champ-{cid}-{detail_version or 'x'}.json"
-    path = os.path.join(user_dir(), "cache", f"champc-{cid}-{detail_version or 'x'}.json")
+    path = os.path.join(user_dir(), "cache", f"champc3-{cid}-{detail_version or 'x'}.json")
     got = _read_json(path)
     if got and got.get("a"):
         return got
@@ -523,6 +740,26 @@ def fetch_champ(cid: int, detail_version: str, log=None) -> dict | None:
             pass
         return comp
     return None
+
+
+AXIS_TO_ITEM = {
+    "AD": {"AD": 0.8, "LETH": 0.3}, "AS": {"AS": 1.0, "ONHIT": 0.4}, "CRIT": {"CRIT": 1.2},
+    "ONHIT": {"ONHIT": 1.2, "AS": 0.5}, "AP": {"AP": 0.9, "MPEN": 0.3}, "SPELL": {"AH": 0.7},
+    "TANK": {"ARMOR": 0.5, "MR": 0.5, "HP": 0.5, "TANK": 0.4}, "HP": {"HP": 1.2}, "HEAL": {"HEAL": 1.2},
+    "VAMP": {"VAMP": 0.8}, "MANA": {"MANA": 1.4}, "MS": {"MS": 0.7}, "BURN": {"BURN": 1.4},
+    "HYDRA": {"HYDRA": 1.5}, "RANGE": {"AS": 0.3, "CRIT": 0.3}, "ULT": {"AH": 0.4}, "CC": {"TANK": 0.3},
+    "ITEM": {"BURN": 0.4},
+}
+# Augment can dung mon do cu the (nhiem vu / nang cap).
+AUG_MUST_ITEMS = {
+    1152: [(3084, 12.0)], 1361: [(3068, 12.0), (6664, 11.0)], 1156: [(3089, 12.0), (3157, 11.0)],
+    2141: [(3074, 10.0), (6698, 9.5), (3748, 9.0)], 1336: [(3031, 10.0)], 2140: [(3074, 10.0)],
+    1996: [(3078, 4.0), (3100, 4.0), (6662, 4.0), (3508, 4.0)], 2143: [(6610, 10.0)], 1320: [(6676, 10.0)],
+    2157: [(6333, 10.0)], 1319: [(3068, 6.0), (6664, 5.5)], 1318: [(3157, 10.0)], 1379: [(124011, 10.0)],
+    1092: [(6653, 1.5), (2503, 1.5)], 1045: [(6653, 1.0), (2503, 1.0)], 2128: [(6653, 1.0), (2503, 1.0)],
+    1311: [(6657, 1.5)], 1056: [(6657, 1.5)],
+    NEW_AUGS["upgradestormsurge"][0]: [(4646, 10.0)],  # Nang cap Stormsurge (26.21)
+}
 
 
 @dataclass
@@ -573,6 +810,11 @@ class Engine:
         self.en_aug: dict[int, str] = {}
         self.vn_champ: dict[int, str] = {}
         self.champ_range: dict[int, float] = {}
+        self.champ_tags: dict[int, list] = {}
+        self.cd_rarity: dict[int, str] = {}
+        self.removed: set = set()       # augment da bi go khoi Mayhem (ban 26.21)
+        self.new_augs: set = set()      # augment moi chua co so lieu
+        self.class_cores: dict = _read_json(BUNDLED_CLASS_CORES) or {}
         self.alias_to_cid: dict[str, int] = {}
         self.tags: dict[int, dict] = {}
         self._pct_cache: dict[str, list] = {}
@@ -580,6 +822,10 @@ class Engine:
         self._champ_index: list = []
         self._ocr_index = None
         self._fresh_champs: set = set()
+        self.items: dict[int, dict] = {}
+        self.item_en: dict[int, str] = {}
+        self.vn_item: dict[int, str] = {}
+        self.champ_items: dict[int, dict] = {}
         core = _read_json(BUNDLED_CORE)
         cached = _read_json(os.path.join(user_dir(), "cache", "core-compact.json"))
         if cached and cached.get("augs") and (not core or str(cached.get("detailVersion", "")) >=
@@ -589,6 +835,11 @@ class Engine:
             self.apply_core(core, source="kèm theo app")
         else:
             self.log("không đọc được dữ liệu kèm theo app")
+        if not self.items and core and core.get("items"):  # cache cu chua co bang do -> dung ban kem theo
+            self.items = {int(k): v for k, v in core["items"].items()}
+            for k, v in self.items.items():
+                if v.get("en"):
+                    self.item_en.setdefault(k, v["en"])
         names = _read_json(os.path.join(user_dir(), "cache", "names-compact.json"))
         if names:
             self.apply_names(names)
@@ -596,17 +847,37 @@ class Engine:
     # ------------------------------------------------------------- loading
     def apply_core(self, core: dict, source: str):
         if core.get("detailVersion") != self.detail_version:
-            self.champ_augs, self.slots, self._fresh_champs = {}, {}, set()
+            self.champ_augs, self.slots, self._fresh_champs, self.champ_items = {}, {}, set(), {}
         self.patch = core.get("patch") or self.patch
         self.ddv = core.get("ddv") or self.ddv
         self.detail_version = core.get("detailVersion") or self.detail_version
         self.augs = {int(k): v for k, v in core.get("augs", {}).items()}
         self.champs = {int(k): v for k, v in core.get("champs", {}).items()}
+        if core.get("items"):
+            self.items = {int(k): v for k, v in core["items"].items()}
+            for k, v in self.items.items():
+                if v.get("en"):
+                    self.item_en[k] = v["en"]
         self.source = source
         self.alias_to_cid.update({alias_key(c.get("alias")): cid for cid, c in self.champs.items() if c.get("alias")})
         self.tags = {aid: AUG_TAGS.get(aid) if aid in AUG_TAGS else auto_tags(a) for aid, a in self.augs.items()}
         self._pct_cache = {}
+        self._merge_new_augs()
         self._rebuild_index()
+
+    @property
+    def patch_display(self) -> str:
+        """Ten ban cap nhat nhu tren client: tu 2026 Riot dat ten theo nam (ban noi bo 16.20 = 26.20)."""
+        m = re.match(r"^(\d+)\.(\d+)", self.patch or "")
+        if m and int(m.group(1)) >= 16:
+            return f"{int(m.group(1)) + 10}.{m.group(2)}"
+        return self.patch
+
+    @property
+    def game_display(self) -> str:
+        """Ban game hien tai (theo Data Dragon), vd 16.21.1 -> 26.21."""
+        v = self._ver(self.ddv)
+        return f"{v[0] + 10}.{v[1]}" if v[0] >= 16 else (self.ddv or "")
 
     def apply_names(self, names: dict):
         for k, v in (names.get("vn_aug") or {}).items():
@@ -623,13 +894,62 @@ class Engine:
                 self.champ_range[int(k)] = float(v)
         for k, v in (names.get("dd_alias") or {}).items():
             self.alias_to_cid.setdefault(k, int(v))
+        for k, v in (names.get("champ_tags") or {}).items():
+            if str(k).isdigit() and isinstance(v, list):
+                self.champ_tags[int(k)] = v
+        for k, v in (names.get("vn_item") or {}).items():
+            if str(k).isdigit() and v:
+                self.vn_item[int(k)] = v
+        for k, v in (names.get("cd_rar") or {}).items():
+            if str(k).isdigit() and v:
+                self.cd_rarity[int(k)] = v
+        self._merge_new_augs()
         self._rebuild_index()
+
+    @staticmethod
+    def _ver(s) -> tuple:
+        m = re.match(r"^(\d+)\.(\d+)", str(s or ""))
+        return (int(m.group(1)), int(m.group(2))) if m else (0, 0)
+
+    def _merge_new_augs(self):
+        """Ban 26.21: them augment moi (arammeta chua co so lieu) + danh dau augment da bi go."""
+        by_name: dict = {}
+        for aid, en in self.en_aug.items():
+            by_name.setdefault(alias_key(en), []).append(aid)
+        self.new_augs = set()
+        chosen = set()
+        for key, (fid, rar, _tg, vn, en) in NEW_AUGS.items():
+            ids = by_name.get(key) or []
+            ids = [i for i in ids if 3000 <= i < 4000] or ids  # augment Mayhem moi nam o dai 3xxx
+            aid = max(ids) if ids else fid
+            chosen.add(aid)
+            if aid != fid:
+                _alias_new_aug(fid, aid)
+            cur = self.augs.get(aid)
+            if cur is None or cur.get("new"):
+                self.augs[aid] = {"en": self.en_aug.get(aid) or en, "rarity": self.cd_rarity.get(aid) or rar,
+                                  "cats": [], "desc": "", "wr": None, "lift": None, "g": 0, "new": NEW_AUGS_PATCH}
+                self.new_augs.add(aid)
+            self.tags[aid] = AUG_TAGS.get(aid) or self.tags.get(aid) or {}
+            if aid not in self.vn_aug and vn:
+                self.vn_aug[aid] = vn
+        for aid in [a for a, x in self.augs.items() if x.get("new") and a not in chosen]:
+            self.augs.pop(aid, None)  # id du phong cu (da tim thay id that)
+            self.tags.pop(aid, None)
+        # augment bi go: chi ap dung khi game da sang ban 26.21+ ma so lieu chua co tran nao o ban moi
+        game_new = self._ver(self.ddv) >= REMOVED_SINCE
+        stats_old = self._ver(self.patch) < REMOVED_SINCE
+        self.removed = {aid for aid, a in self.augs.items()
+                        if game_new and alias_key(a.get("en") or self.en_aug.get(aid, "")) in REMOVED_AUGS
+                        and (stats_old or not (a.get("g") or 0))}
+        self._ocr_index = None
 
     def apply_updates(self, upd: dict) -> str:
         msgs = []
         if upd.get("core"):
             self.apply_core(upd["core"], source="arammeta (mới nhất)")
-            msgs.append(f"dữ liệu patch {self.patch}")
+            msgs.append(f"game {self.game_display} · số liệu {self.patch_display}"
+                        + (f" · {len(self.new_augs)} augment mới" if self.new_augs else ""))
         if upd.get("names"):
             self.apply_names(upd["names"])
             if upd["names"].get("vn_aug"):
@@ -645,18 +965,26 @@ class Engine:
         self.slots.pop(cid, None)
         self.champ_augs[cid] = {int(a): v for a, v in (comp.get("a") or {}).items()}
         self.slots[cid] = {int(a): v for a, v in (comp.get("s") or {}).items()}
+        self.champ_items.pop(cid, None)
+        self.champ_items[cid] = {"it": {int(k): v for k, v in (comp.get("it") or {}).items()},
+                                 "bt": [[int(b[0]), b[1], b[2]] for b in comp.get("bt") or [] if str(b[0]).isdigit()],
+                                 "cl": comp.get("cl") or []}
+        for k, v in (comp.get("nm") or {}).items():
+            if str(k).isdigit() and v:
+                self.item_en.setdefault(int(k), v)
         if fresh:
             self._fresh_champs.add(cid)
         while len(self.champ_augs) > CHAMP_CACHE_MAX:  # bo tuong cu nhat khoi RAM
             old = next(iter(self.champ_augs))
             self.champ_augs.pop(old, None)
             self.slots.pop(old, None)
+            self.champ_items.pop(old, None)
             self._fresh_champs.discard(old)
 
     def _ensure_local(self, cid):
         if cid is None or cid in self.champ_augs:
             return
-        comp = _read_json(os.path.join(user_dir(), "cache", f"champc-{cid}-{self.detail_version or 'x'}.json"))
+        comp = _read_json(os.path.join(user_dir(), "cache", f"champc3-{cid}-{self.detail_version or 'x'}.json"))
         fresh = bool(comp)
         if not comp:
             comp = _read_json(os.path.join(BUNDLED_CHAMPS_DIR, f"{cid}.json"))
@@ -670,6 +998,252 @@ class Engine:
     def champ_slots(self, cid) -> dict:
         self._ensure_local(cid)
         return self.slots.get(cid, {}) if cid is not None else {}
+
+    # ------------------------------------------------------------- items
+    def item_name(self, iid: int) -> str:
+        en = self.item_en.get(iid) or (self.items.get(iid) or {}).get("en")
+        if self.prefer_en:
+            return en or self.vn_item.get(iid) or f"#{iid}"
+        return self.vn_item.get(iid) or en or f"#{iid}"
+
+    def item_tags(self, iid: int) -> set:
+        t = set((self.items.get(iid) or {}).get("t") or [])
+        if iid in BOOTS_TAGS:
+            t.update(BOOTS_TAGS[iid])
+        return t
+
+    def is_boots(self, iid: int) -> bool:
+        if iid in BOOTS_TAGS or (self.items.get(iid) or {}).get("boots"):
+            return True
+        n = (self.item_en.get(iid) or "").lower()
+        return any(w in n for w in ("boots", "greaves", "treads", "steelcaps", "shoes", "swiftness"))
+
+    def _item_affinity(self, iid: int, owned: list) -> float:
+        tags = self.item_tags(iid)
+        if not tags:
+            return 0.0
+        total = 0.0
+        for o in owned:
+            for axis, w in (self.tags.get(o) or {}).items():
+                for itag, iw in AXIS_TO_ITEM.get(axis, {}).items():
+                    if itag in tags:
+                        total += w * iw
+        return min(4.0, total)
+
+    @staticmethod
+    def _est(g, lift, K=300.0):
+        return (g * (lift or 0.0) / (g + K)) * 100 if g else 0.0
+
+    def _allowed_groups(self, owned) -> list:
+        out = []
+        if 2141 in owned:
+            out.append(HYDRA_IDS)
+        if 1361 in owned:
+            out.append({3068, 6664})
+        return out
+
+    @staticmethod
+    def _clash(iid, picked, allowed) -> bool:
+        for grp in UNIQUE_GROUPS:
+            if iid in grp and grp not in allowed and any(p in grp for p in picked):
+                return True
+        return False
+
+    def is_full_item(self, iid: int, cid=None) -> bool:
+        """Mon hoan chinh (khong tinh nguyen lieu / binh mau / mat / do khoi dau)."""
+        if iid in STARTER_IDS:
+            return False
+        if iid in self.items:
+            return True
+        data = self.champ_items.get(cid) or {}
+        return iid in (data.get("it") or {})
+
+    def champ_class(self, cid) -> list:
+        """Khoa lop tuong de dung build chung: ["Tank|M", "Tank", ...] (tu cu the -> chung)."""
+        tags = list((self.champs.get(cid) or {}).get("tags") or self.champ_tags.get(cid) or [])
+        rng = self.champ_range.get(cid)
+        rk = None if rng is None else ("R" if rng > 350 else "M")
+        keys = [f"{t}|{rk}" for t in tags] if rk else []
+        keys += list(tags) + ([f"*|{rk}"] if rk else []) + ["*"]
+        return keys
+
+    def class_build(self, cid) -> dict:
+        """Build chung cua lop tuong (tong hop tu cac tuong cung lop) — dung khi tuong chua co so lieu Mayhem."""
+        for k in self.champ_class(cid):
+            b = self.class_cores.get(k)
+            if b and b.get("core"):
+                return b
+        return {}
+
+    def core_cluster(self, cid) -> int | None:
+        """Cum do 'tran phai' cua tuong (khong phu thuoc augment): nhieu tran + thang tot."""
+        clusters = (self.champ_items.get(cid) or {}).get("cl") or []
+        tot = float(sum(c.get("g", 0) for c in clusters)) or 1.0
+        best, best_v = None, -1e9
+        for k, c in enumerate(clusters):
+            g = c.get("g", 0) or 0
+            v = (c.get("lift") or 0.0) * 100.0 * g / (g + 3000.0) + 1.5 * g / tot
+            if v > best_v:
+                best, best_v = k, v
+        return best
+
+    def core_items(self, cid, n: int = 3) -> list:
+        """3 mon core cua tuong theo thu tu mua (so lieu that arammeta: quickCore)."""
+        self._ensure_local(cid)
+        data = self.champ_items.get(cid) or {}
+        clusters = data.get("cl") or []
+        k = self.core_cluster(cid)
+        order: list = []
+        if k is not None:
+            c = clusters[k]
+            order += [x for x in c.get("qc") or []] + [x for x in c.get("core") or []]
+            opts = sorted(c.get("opts") or [], key=lambda o: -self._est(o[1], o[2], 1000.0))
+            order += [o[0] for o in opts] + [x for x in c.get("comp") or []]
+        it = data.get("it") or {}
+        order += [str(i) for i, _v in sorted(it.items(), key=lambda kv: -(kv[1][0] or 0))]
+        order += [str(i) for i in (self.class_build(cid).get("core") or [])]  # du phong: tuong moi / it so lieu
+        out: list = []
+        for x in order:
+            if not str(x).isdigit():
+                continue
+            iid = int(x)
+            if iid in out or iid in STARTER_IDS or self.is_boots(iid) or self._clash(iid, out, []):
+                continue
+            out.append(iid)
+            if len(out) >= n:
+                break
+        return out
+
+    def _pick_boots(self, cid, owned, cl_idx) -> int | None:
+        data = self.champ_items.get(cid) or {}
+        clusters = data.get("cl") or []
+        best_cl = clusters[cl_idx] if cl_idx is not None and cl_idx < len(clusters) else None
+        boot_pick, bv = None, -1e9
+        for b in data.get("bt") or []:
+            iid = b[0]
+            v = self._est(b[1], b[2]) + self._item_affinity(iid, owned) * 0.5
+            if best_cl and str(best_cl.get("boot")) == str(iid):
+                v += 0.5
+            if v > bv:
+                boot_pick, bv = iid, v
+        if boot_pick is None:
+            cb = self.class_build(cid).get("boot")
+            boot_pick = int(cb) if cb else None
+        return boot_pick
+
+    def recommend_items(self, cid, owned: list, bought=None, n_items: int = 6) -> list:
+        """Build do (chi id): [core1, core2, core3, giay, sau1, sau2, sau3]."""
+        return [e["id"] for e in self.plan_build(cid, owned, bought, n_items)]
+
+    def plan_build(self, cid, owned: list, bought=None, n_items: int = 6) -> list:
+        """Build do = CORE (3 mon tran phai cua tuong, khong doi theo augment) + giay
+                    + SAU (3 mon tiep theo, chon theo augment da co; augment can mon rieng -> mon do dung dau).
+        Do da mua (live) duoc danh dau; mon da mua ngoai core tinh vao nhom SAU.
+        Tra ve [{id, group: core|boots|late, boots, bought, tentative (chua co augment -> nhom SAU la du kien)}]."""
+        if cid is None:
+            return []
+        self._ensure_local(cid)
+        owned = [a for a in owned if a is not None][:6]  # Headliner K/DA: co the co augment thu 5
+        n_core = 3
+        n_late = max(1, n_items - n_core)
+        core = self.core_items(cid, n_core)
+        have, got_boots = [], None
+        for iid in bought or ():
+            if iid in have or not self.is_full_item(iid, cid):
+                continue
+            if self.is_boots(iid):
+                got_boots = got_boots or iid
+            else:
+                have.append(iid)
+        allowed = self._allowed_groups(owned)
+        late = [i for i in have if i not in core]
+        taken = core + late
+        # augment can mon cu the -> dung dau nhom SAU (nhiem vu truoc, roi Sieu Mang Xa / nang cap...)
+        must = sorted(((w, -i, iid) for i, aid in enumerate(owned) for iid, w in AUG_MUST_ITEMS.get(aid, [])
+                       if w >= 9.0), reverse=True)
+        for _w, _o, iid in must:
+            if len(late) >= n_late:
+                break
+            if iid not in taken and not self._clash(iid, taken, allowed):
+                late.append(iid)
+                taken.append(iid)
+        cl_idx = self.core_cluster(cid)
+        for _v, iid in self._item_scores(cid, owned, cl_idx):
+            if len(late) >= n_late:
+                break
+            if iid in taken or iid in STARTER_IDS or self._clash(iid, taken, allowed):
+                continue
+            late.append(iid)
+            taken.append(iid)
+        boots = got_boots or self._pick_boots(cid, [], cl_idx)
+        hs = set(have)
+        out = [{"id": i, "group": "core", "boots": False, "bought": i in hs, "tentative": False} for i in core]
+        if boots:
+            out.append({"id": boots, "group": "boots", "boots": True, "bought": bool(got_boots), "tentative": False})
+        out += [{"id": i, "group": "late", "boots": False, "bought": i in hs, "tentative": not owned and i not in hs}
+                for i in late]
+        return out
+
+    def build_diff(self, before: list, after: list) -> tuple:
+        """(mon moi, mon bi bo) giua 2 ket qua plan_build (khong tinh do da mua)."""
+        b = {e["id"] for e in before}
+        a = {e["id"] for e in after}
+        added = [e["id"] for e in after if e["id"] not in b and not e["bought"]]
+        removed = [e["id"] for e in before if e["id"] not in a and not e["bought"]]
+        return added, removed
+
+    def _item_scores(self, cid, owned: list, cl_idx: int | None) -> list:
+        """[(diem, id)] giam dan cho cac mon (khong giay) theo tuong + augment + cum do da chon."""
+        data = self.champ_items.get(cid) or {}
+        it, clusters = data.get("it") or {}, data.get("cl") or []
+        est = self._est
+        must: dict = {}
+        for o in owned:
+            for iid, bonus in AUG_MUST_ITEMS.get(o, []):
+                must[iid] = max(must.get(iid, 0.0), bonus)
+        champ_roles = set((self.champs.get(cid) or {}).get("tags") or [])
+        best_cl = clusters[cl_idx] if cl_idx is not None and cl_idx < len(clusters) else None
+        cands: dict = {}
+
+        def add(iid, base):
+            if iid in cands:
+                cands[iid] = max(cands[iid], base)
+            else:
+                cands[iid] = base
+
+        for iid, (g, lift) in it.items():
+            add(iid, est(g, lift))
+        if not it and not clusters:  # tuong chua co so lieu -> do pho bien cua lop tuong
+            cb = self.class_build(cid)
+            for r, x in enumerate((cb.get("core") or []) + (cb.get("late") or [])):
+                add(int(x), 3.0 - 0.2 * r)
+        if best_cl:
+            for x in best_cl.get("core") or []:
+                if str(x).isdigit():
+                    add(int(x), 3.0)
+            for o in best_cl.get("opts") or []:
+                if str(o[0]).isdigit():
+                    add(int(o[0]), est(o[1], o[2]) + 0.5)
+            for x in (best_cl.get("comp") or []) + (best_cl.get("tail") or []):
+                if str(x).isdigit():
+                    add(int(x), cands.get(int(x), 0.0) + 0.4)
+        # do ngoai so lieu tuong: chi khi rat hop augment va dung vai tro tuong
+        for iid, meta in self.items.items():
+            if iid in cands or self.is_boots(iid):
+                continue
+            aff = self._item_affinity(iid, owned)
+            role = set((meta.get("r") or "").split())
+            if aff >= 2.5 and (not role or role & champ_roles):
+                cands[iid] = 0.0
+        for iid in must:
+            cands.setdefault(iid, 0.0)
+        scored = []
+        for iid, base in cands.items():
+            if self.is_boots(iid):
+                continue
+            scored.append((base + self._item_affinity(iid, owned) + must.get(iid, 0.0), iid))
+        scored.sort(reverse=True)
+        return scored
 
     # ------------------------------------------------------------- names / search
     prefer_en = False  # True: hien ten tieng Anh (khop voi client game tieng Anh)
@@ -698,6 +1272,8 @@ class Engine:
             exact: dict = {}
             fuzzy = []
             for aid, a in self.augs.items():
+                if aid in self.removed:
+                    continue
                 names = {a.get("en", ""), self.en_aug.get(aid, ""), self.vn_aug.get(aid, "")}
                 names.update(OCR_ALIASES.get(aid, []))
                 for n in names:
@@ -722,10 +1298,17 @@ class Engine:
             keys.discard("")
             self._aug_index.append((aid, " | ".join(sorted(keys)), sorted(keys)))
         self._champ_index = []
-        for cid, c in self.champs.items():
-            keys = {norm(c.get("en", "")), norm(c.get("alias", "")), norm(self.vn_champ.get(cid, ""))}
+        dd_alias: dict = {}
+        for al, cid in self.alias_to_cid.items():
+            dd_alias.setdefault(cid, al)
+        # moi tuong trong Lien Minh (Data Dragon), ke ca tuong moi chua co so lieu Mayhem
+        for cid in set(self.champs) | set(self.vn_champ):
+            c = self.champs.get(cid) or {}
+            keys = {norm(c.get("en", "")), norm(c.get("alias", "") or dd_alias.get(cid, "")),
+                    norm(self.vn_champ.get(cid, ""))}
             keys.discard("")
-            self._champ_index.append((cid, " | ".join(sorted(keys)), sorted(keys)))
+            if keys:
+                self._champ_index.append((cid, " | ".join(sorted(keys)), sorted(keys)))
 
     @staticmethod
     def _match_rank(q: str, toks: list, blob: str, keys: list):
@@ -747,7 +1330,7 @@ class Engine:
         pool = self.champ_pool(cid) if cid else {}
         out = []
         for aid, blob, keys in self._aug_index:
-            if aid in exclude:
+            if aid in exclude or aid in self.removed:
                 continue
             if rarity and self.augs[aid].get("rarity") != rarity:
                 continue
@@ -843,6 +1426,9 @@ class Engine:
     # ------------------------------------------------------------- scoring parts
     def champ_component(self, cid: int | None, aid: int, slot: int | None, w: dict, reasons: list | None):
         a = self.augs.get(aid) or {}
+        if a.get("new") and reasons is not None:
+            reasons.append(Reason("!", f"Augment mới bản {a['new']} — chưa có số liệu thắng/thua, "
+                                       f"điểm ước tính theo cơ chế + kiểu tướng", f"mới {a['new']}"))
         glift = (a.get("lift") or 0.0) * 100
         fit = self.axis_fit(aid, w)
         prior = 0.5 * glift + fit
@@ -1003,7 +1589,8 @@ class Engine:
             ids = [a for a, (g, _wr) in pool.items() if g >= min_games and a in self.augs]
         else:
             ids = [a for a, x in self.augs.items() if (x.get("g") or 0) >= 5000]
-        return [a for a in ids if a not in owned and a not in RANDOM_IDS]
+        ids += [a for a in self.new_augs if a not in ids]
+        return [a for a in ids if a not in owned and a not in RANDOM_IDS and a not in self.removed]
 
     def targets_by_rarity(self, cid, owned: list[int], live=None, per=3) -> dict:
         slot = min(len(owned), 3)
@@ -1102,6 +1689,7 @@ def parse_live(js: dict) -> dict:
         "attack_range": stats.get("attackRange"),
         "resource": stats.get("resourceType"),
         "is_dead": me.get("isDead"),
+        "items": [int(i.get("itemID")) for i in (me.get("items") or []) if isinstance(i, dict) and i.get("itemID")],
         "allies": [p.get("rawChampionName", "").rsplit("_", 1)[-1] for p in players if p.get("team") == team and p is not me],
         "enemies": [p.get("rawChampionName", "").rsplit("_", 1)[-1] for p in players if team and p.get("team") != team],
         "augment_hints": _find_augment_fields(me) + _find_augment_fields(ap),
@@ -1274,6 +1862,8 @@ def match_offer(lines: list, fw: int, fh: int, index, exclude: list | None = Non
     rars = [rar_of.get(cl["best"][1]) for cl in found]
     major = max(set(rars), key=rars.count) if rars else None
     if len(found) == 2 and major and rars.count(major) == 2:
+        # the con lai: cung do hiem, hoac cao hon 1 bac (Headliner "Command Line" nang cap 1 the)
+        up = {"kSilver": "kGold", "kGold": "kPrismatic"}.get(major)
         for cl in clusters:
             if cl in found or abs(cl["cx"] - found[0]["cx"]) < radius or abs(cl["cx"] - found[1]["cx"]) < radius:
                 continue
@@ -1281,9 +1871,12 @@ def match_offer(lines: list, fw: int, fh: int, index, exclude: list | None = Non
             for t, cy in texts_of(cl):
                 if abs(cy - ref_cy) > 0.08 * fh:
                     continue
-                m = _best_name(t, index, 0.65, rarity=major)
-                if m and (best is None or m[0] > best[0]):
-                    best = (m[0], m[1], t, cy)
+                for rr in (major, up):
+                    if not rr:
+                        continue
+                    m = _best_name(t, index, 0.65, rarity=rr)
+                    if m and (best is None or m[0] > best[0]):
+                        best = (m[0], m[1], t, cy)
             if best:
                 cl["best"] = best
                 found.append(cl)

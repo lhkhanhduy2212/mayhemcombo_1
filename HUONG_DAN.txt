@@ -1,4 +1,4 @@
-﻿﻿MAYHEM COMBO v1.3 — gợi ý augment ARAM Mayhem (Windows)
+﻿MAYHEM COMBO v1.8 — gợi ý augment ARAM Mayhem (Windows)
 =========================================================
 
 CÀI ĐẶT (1 lần)
@@ -19,12 +19,33 @@ DÙNG
        thẻ trái · Rất mạnh · thắng 56% (+2.7) · combo ...
     2 Augment khác              +2.6 [Lấy]
     Đã có 1/4  [Mystic Punch ✕] [+]
+    Core  Trái Tim Khổng Thần › Giáp Máu Warmog › Giáp Tâm Linh · Giày Bạc
+    Sau   Khiên Thái Dương › Áo Choàng Hắc Quang › Áo Choàng Diệt Vong
     ▸ Gợi ý build
 - Chọn thẻ trong game xong → bấm "Lấy" ở dòng đó (để app tính combo cho lượt sau).
+- Dòng "Core": 3 món trấn phái của tướng (số liệu thật Mayhem, đúng thứ tự mua) + giày.
+  KHÔNG đổi theo augment. Ví dụ Mundo / tank: Trái Tim Khổng Thần trước.
+  Có đủ mọi tướng Liên Minh (173 tướng, bản 26.21). Tướng mới ra chưa có số liệu Mayhem → dùng build
+  chung của lớp tướng đó (tank / pháp sư / xạ thủ / hỗ trợ..., chia cận chiến - đánh xa).
+- Dòng "Sau": 3 món tiếp theo, chọn theo augment (lõi) đã lấy. Chưa có augment → chữ nghiêng mờ "(chờ augment)".
+  Augment cần món riêng (nhiệm vụ Heartsteel/Wooglet/Icathia, Siêu Mãng Xà...) → món đó đứng đầu dòng Sau.
+  Lấy augment mới → món đổi hiện màu xanh lá + báo ở trên cùng.
+  Đủ 6 ô (3 core + giày + 2) thì món Sau thứ 3 dùng khi bán giày lúc full đồ.
+- Đồ đã mua trong trận được làm mờ (✓) → món sáng đầu tiên là món nên mua tiếp.
+- Bấm vào 1 thẻ augment đang chọn → dòng "⚒" cho biết lấy thẻ đó thì dòng Sau đổi gì.
 - Bấm vào 1 dòng augment để xem đủ lý do. Bấm "▸ Gợi ý build" để xem augment nên nhắm + combo 4 mạnh nhất.
 - Bấm tên tướng (▾) để chọn tướng bằng tay (khi chưa vào trận). Kéo thanh trên cùng để di chuyển cửa sổ.
 - "—" thu gọn còn 1 thanh có nút Quét. "✕" tắt app. F8 ẩn/hiện.
 - OCR đọc thiếu 1 thẻ → dòng "? thẻ ... chưa đọc được" hiện ra để gõ tên (có dấu/không dấu đều được).
+
+BẢN 26.21 (Mayhem làm lại): có 35 augment mới + 13 augment bị gỡ.
+- Augment mới được nhận diện ngay (đọc thẻ, gõ tên, PICK ME). Vì chưa có số liệu thắng/thua nên điểm là
+  ƯỚC TÍNH theo cơ chế + kiểu tướng, dòng dưới tên ghi "mới 26.21". Khi arammeta có đủ trận bản mới,
+  app tự chuyển sang số liệu thật (tự tải mỗi lần mở app).
+- 13 augment bị gỡ (Lãi Suất Bốc Cháy, Ult Bot, High Roller...) không còn được gợi ý.
+- Headliner "Command Line" (1 thẻ được nâng bậc): app vẫn đọc được thẻ khác độ hiếm.
+- Headliner "K/DA" (thêm augment thứ 5): cứ bấm Lấy bình thường, app tính cả 5.
+- Cuối mục "▸ Gợi ý build" ghi "Game 26.21 · số liệu arammeta 26.20" = số liệu đang tính trên bản nào.
 
 RAM: app ~40 MB; bộ đọc màn hình chỉ chạy lúc bạn chết / bấm Quét, tự tắt sau 30 giây.
 

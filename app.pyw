@@ -31,6 +31,7 @@ T = dict(bg="#121418", panel="#1a1d23", panel2="#252a33", fg="#ecebe7", dim="#8f
 RARITY_COLOR = {"kSilver": "#c9d2dc", "kGold": "#f2c14e", "kPrismatic": "#d6a2ff"}
 GRADE_COLOR = {"Rất mạnh": "#7bd88f", "Tốt": "#b5e07a", "Ổn": "#f0c674", "Yếu": "#ff9e64", "Tránh": "#ff7b72"}
 KIND_COLOR = {"+": T["good"], "-": T["bad"], "i": T["dim"], "!": T["warn"]}
+MUTED = "#b4bac3"  # do du kien (chua co augment cua giai doan do)
 KIND_ICON = {"+": "▲", "-": "▼", "i": "•", "!": "!"}
 SLOT_VN = ["trái", "giữa", "phải"]
 
@@ -506,6 +507,7 @@ class App:
         self.f_small = tkfont.Font(family=fam, size=9)
         self.f_bold = tkfont.Font(family=fam, size=10, weight="bold")
         self.f_tiny = tkfont.Font(family=fam, size=8)
+        self.f_tiny_it = tkfont.Font(family=fam, size=8, slant="italic")
         try:
             self.root.attributes("-topmost", True)
             self.root.attributes("-alpha", float(self.cfg.get("alpha", 0.95)))
@@ -579,6 +581,8 @@ class App:
         self.offers_frame.pack(fill="x")
         self.owned_frame = tk.Frame(self.body, bg=T["bg"])
         self.owned_frame.pack(fill="x", pady=(self.px(6), 0))
+        self.items_frame = tk.Frame(self.body, bg=T["bg"])
+        self.items_frame.pack(fill="x", pady=(self.px(5), 0))
         self.add_row = tk.Frame(self.body, bg=T["bg"])
         self.ent_add = AutoEntry(self.add_row, self, self._suggest_owned, self._pick_owned,
                                  placeholder="thêm augment đã có…", on_escape=self._hide_add_row)
@@ -710,8 +714,10 @@ class App:
         return [(a, self._aug_label(a), RARITY_COLOR.get(self.eng.augs[a].get("rarity"))) for a in ids]
 
     def _suggest_slot(self, q):
+        # uu tien cung do hiem voi the khac, nhung van cho the cao hon (Headliner "Command Line")
         rar = next((self.eng.augs[a].get("rarity") for a in self.offers if a), None)
-        ids = self.eng.search_augs(q, rarity=rar, cid=self.cid, exclude=set(self.owned) | set(self.offers), limit=6)
+        ids = self.eng.search_augs(q, cid=self.cid, exclude=set(self.owned) | set(self.offers), limit=12)
+        ids = sorted(ids, key=lambda a: 0 if (not rar or self.eng.augs[a].get("rarity") == rar) else 1)[:6]
         return [(a, self._aug_label(a), RARITY_COLOR.get(self.eng.augs[a].get("rarity"))) for a in ids]
 
     def _suggest_champ(self, q):
@@ -742,10 +748,13 @@ class App:
         bg_task(self.q, "champ_data", lambda c=cid: (c, dv, E.fetch_champ(c, dv, log)))
 
     def _pick_owned(self, aid):
+        before = list(self.owned)
         if aid not in self.owned:
             self.owned.append(aid)
         self._hide_add_row()
         self.recalc()
+        if self.owned != before:
+            self._build_flash(before)
 
     def remove_owned(self, aid):
         if aid in self.owned:
@@ -757,10 +766,13 @@ class App:
         self.recalc()
 
     def take(self, aid):
+        before = list(self.owned)
         if aid not in self.owned:
             self.owned.append(aid)
         self._ocr_taken_key = self._ocr_published
         self.clear_offers()
+        if self.owned != before:
+            self._build_flash(before)
 
     def clear_offers(self):
         self.offers = [None, None, None]
@@ -788,6 +800,7 @@ class App:
     # ------------------------------------------------------------- render
     def recalc(self):
         eng = self.eng
+        self._plan_cache = {}
         wl = self.W - self.px(24)
         # header
         if self.live and self.live.get("alias"):
@@ -822,6 +835,9 @@ class App:
         for w in self.owned_frame.winfo_children():
             w.destroy()
         self._owned_chips(wl)
+        for w in self.items_frame.winfo_children():
+            w.destroy()
+        self._items_row(wl)
 
         # tips
         self.lbl_tips.config(text=("▾ Gợi ý build" if self.tips_open else "▸ Gợi ý build"))
@@ -867,9 +883,28 @@ class App:
                 tk.Label(inner, text=f"{KIND_ICON.get(r.kind, '•')} {r.text}", fg=KIND_COLOR.get(r.kind, T["dim"]),
                          bg=T["panel"], font=self.f_tiny, wraplength=wl - self.px(20), justify="left",
                          anchor="w").pack(fill="x", padx=(self.px(18), 0))
+            prev_txt = self._offer_build_text(s.aid)
+            if prev_txt:
+                tk.Label(inner, text=prev_txt, fg=T["accent"], bg=T["panel"], font=self.f_tiny,
+                         wraplength=wl - self.px(20), justify="left", anchor="w").pack(fill="x", padx=(self.px(18), 0))
         for wdg in (row, inner, top, nm, sl, mark):
             wdg.bind("<Button-1>", lambda e, aid=s.aid: self.toggle_expand(aid))
             wdg.config(cursor="hand2")
+
+    def _offer_build_text(self, aid) -> str:
+        """Xem truoc: lay augment nay thi build do doi gi."""
+        if self.cid is None or aid in self.owned:
+            return ""
+        try:
+            before, after = self._plan(self.owned), self._plan(self.owned + [aid])
+            if not self.owned:
+                late = [e for e in after if e["group"] == "late"]
+                return "⚒ Đồ sau: " + " › ".join(self.eng.item_name(e["id"]) for e in late) if late else ""
+            txt = self._diff_text(before, after)
+            return f"⚒ Đồ sau đổi: {txt}" if txt else "⚒ Build đồ giữ nguyên"
+        except Exception:  # noqa: BLE001
+            log("xem truoc do loi:\n" + traceback.format_exc())
+            return ""
 
     def _missing_row(self, i):
         row = tk.Frame(self.offers_frame, bg=T["panel"], padx=self.px(6), pady=self.px(3))
@@ -883,7 +918,8 @@ class App:
         eng = self.eng
         rowf = tk.Frame(self.owned_frame, bg=T["bg"])
         rowf.pack(fill="x")
-        tk.Label(rowf, text=f"Đã có {len(self.owned)}/4", fg=T["dim"], bg=T["bg"], font=self.f_tiny).pack(side="left")
+        n_own = len(self.owned)
+        tk.Label(rowf, text=f"Đã có {n_own}/4" if n_own <= 4 else f"Đã có {n_own}", fg=T["dim"], bg=T["bg"], font=self.f_tiny).pack(side="left")
         if self.owned:
             link(rowf, "xoá hết", self.new_game, self, fg=T["dim"], font=self.f_tiny).pack(side="right")
         used = self.px(70)
@@ -907,6 +943,97 @@ class App:
         plus = tk.Label(line, text=" + ", fg=T["accent"], bg=T["panel2"], font=self.f_tiny, cursor="hand2")
         plus.pack(side="left", padx=(self.px(4), 0))
         plus.bind("<Button-1>", lambda e: self._show_add_row())
+
+    def _bought(self):
+        """Do dang co trong tran (None = chua vao tran -> engine tu uoc luong moc mua do)."""
+        if self.live and self.live.get("alias"):
+            return list(self.live.get("items") or [])
+        return None
+
+    def _plan(self, owned):
+        key = (self.cid, tuple(owned), tuple(self._bought() or ()), self._bought() is None)
+        cache = getattr(self, "_plan_cache", None)
+        if cache is None or len(cache) > 32:
+            cache = self._plan_cache = {}
+        if key not in cache:
+            cache[key] = self.eng.plan_build(self.cid, list(owned), self._bought())
+        return cache[key]
+
+    def _diff_text(self, before, after, limit=3) -> str:
+        add, rem = self.eng.build_diff(before, after)
+        if not add and not rem:
+            return ""
+        nm = self.eng.item_name
+        parts = [f"+ {nm(i)}" for i in add[:limit]] + ([f"+{len(add) - limit} món"] if len(add) > limit else [])
+        if rem:
+            parts.append("bỏ " + ", ".join(nm(i) for i in rem[:2]) + (f" +{len(rem) - 2}" if len(rem) > 2 else ""))
+        return " · ".join(parts)
+
+    def _build_flash(self, before_owned):
+        """Sau khi Lay augment: bao 3 mon SAU doi the nao (core khong doi)."""
+        if self.cid is None or not self.owned:
+            return
+        try:
+            aid = self.owned[-1]
+            txt = self._diff_text(self._plan(before_owned), self._plan(self.owned))
+            self.flash(f"Đồ sau đổi theo {self.eng.aug_name(aid)}: {txt}" if txt
+                       else f"{self.eng.aug_name(aid)}: build đồ giữ nguyên", 8000)
+        except Exception:  # noqa: BLE001
+            log("bao doi do loi:\n" + traceback.format_exc())
+
+    def _items_row(self, wl):
+        """2 dong: Core = 3 mon tran phai cua tuong (+ giay), Sau = 3 mon theo augment.
+        Nghieng mo = du kien (chua co augment), xanh la = vua doi theo augment moi nhat, ✓ = da mua."""
+        if self.cid is None:
+            return
+        try:
+            plan = self._plan(self.owned)
+            prev = self._plan(self.owned[:-1]) if self.owned else None
+        except Exception:  # noqa: BLE001
+            log("goi y do loi:\n" + traceback.format_exc())
+            return
+        if not plan:
+            return
+        fresh = set(self.eng.build_diff(prev, plan)[0]) if prev is not None else set()
+        lab_w = max(self.f_tiny.measure("Core"), self.f_tiny.measure("Sau")) + self.px(6)
+        rows = [("Core", [e for e in plan if e["group"] in ("core", "boots")]),
+                ("Sau", [e for e in plan if e["group"] == "late"])]
+        for label, entries in rows:
+            if not entries:
+                continue
+            line = tk.Frame(self.items_frame, bg=T["bg"])
+            line.pack(fill="x", pady=(0, self.px(1)))
+            tk.Label(line, text=label, fg=T["accent"] if label == "Core" else T["dim"], bg=T["bg"],
+                     font=self.f_tiny, width=0, anchor="w").pack(side="left")
+            tk.Frame(line, bg=T["bg"], width=max(1, lab_w - self.f_tiny.measure(label))).pack(side="left")
+            used = lab_w
+            for k, e in enumerate(entries):
+                iid = e["id"]
+                last = k == len(entries) - 1
+                nxt_boots = not last and entries[k + 1]["boots"]
+                sep = "" if last else ("  ·" if nxt_boots else "  ›")
+                text = ("✓ " if e["bought"] else "") + self.eng.item_name(iid) + sep
+                wpx = self.f_tiny.measure(text) + self.px(6)
+                if used + wpx > wl:
+                    line = tk.Frame(self.items_frame, bg=T["bg"])
+                    line.pack(fill="x", pady=(0, self.px(1)))
+                    tk.Frame(line, bg=T["bg"], width=lab_w).pack(side="left")
+                    used = lab_w
+                if e["bought"]:
+                    col = T["dim"]
+                elif iid in fresh:
+                    col = T["good"]
+                elif e["tentative"]:
+                    col = MUTED
+                elif e["boots"]:
+                    col = T["accent"]
+                else:
+                    col = T["fg"]
+                fnt = self.f_tiny_it if e["tentative"] and not e["bought"] else self.f_tiny
+                tk.Label(line, text=text, fg=col, bg=T["bg"], font=fnt).pack(side="left", padx=(0, self.px(3)))
+                used += wpx
+            if label == "Sau" and not self.owned and used + self.f_tiny_it.measure("(chờ augment)") <= wl:
+                tk.Label(line, text="(chờ augment)", fg=T["dim"], bg=T["bg"], font=self.f_tiny_it).pack(side="left")
 
     def _tips(self, wl):
         eng = self.eng
@@ -933,7 +1060,7 @@ class App:
                     tk.Label(f, text="Combo 4 mạnh nhất: " + " + ".join(eng.aug_name(a) for a in combos[0][1]),
                              fg=T["fg"], bg=T["bg"], font=self.f_tiny, wraplength=wl, justify="left",
                              anchor="w").pack(fill="x", pady=(self.px(3), 0))
-        tk.Label(f, text=f"Dữ liệu arammeta · patch {eng.patch} · {eng.source} · "
+        tk.Label(f, text=f"Game {eng.game_display} · số liệu arammeta {eng.patch_display} · {eng.source} · "
                          f"{self.cfg.get('hotkey', 'F8')} ẩn/hiện · {self.cfg.get('ocr_hotkey', 'F9')} quét",
                  fg=T["dim"], bg=T["bg"], font=self.f_tiny, wraplength=wl, justify="left",
                  anchor="w").pack(fill="x", pady=(self.px(4), 0))
@@ -1154,6 +1281,11 @@ class App:
             return
         self.eng.apply_updates(upd)
         del upd
+        if self.eng.new_augs and not getattr(self, "_new_aug_flashed", False):
+            self._new_aug_flashed = True
+            self.flash(f"Bản {self.eng.game_display}: đã thêm {len(self.eng.new_augs)} augment mới "
+                       f"(chưa có số liệu → điểm ước tính, ghi \"mới\")"
+                       + (f", bỏ {len(self.eng.removed)} augment đã bị gỡ" if self.eng.removed else "") + ".", 10000)
         import gc
         gc.collect()
         self.loading_champ.clear()
@@ -1182,7 +1314,8 @@ class App:
             self._apply_aug_hints(state.get("augment_hints") or [])
             if self.watcher and (state.get("is_dead") or gt < 90):
                 self.watcher.activate(3.5)  # chi quet luc dang chet (luc chon augment) hoac dau tran
-            if not prev or prev.get("level") != state.get("level") or not prev.get("alias"):
+            if (not prev or prev.get("level") != state.get("level") or not prev.get("alias")
+                    or prev.get("items") != state.get("items")):
                 self.recalc()
         elif prev and prev.get("alias"):
             self.recalc()
